@@ -9,14 +9,16 @@ Login
       <div class="container">
         <div class="columns is-centered">
           <div class="column is-half">
-
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    {% for msg in messages %}
-                        <p>{{msg}}</p>
-                    {% endfor %}
-                {% endif%}
-            {% endwith %}
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <ul class="notification {{ category }} is-light">
+                    <li class="{{ category }}">{{ message }}</li>
+                  </ul>
+                  {% endfor %}
+              {% endif %}
+            {% endwith %} 
 
             <form method="POST">
               <div class="field">
