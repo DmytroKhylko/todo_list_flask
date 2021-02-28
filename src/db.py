@@ -53,4 +53,16 @@ def updateTask(id, task):
 
             cur.execute("UPDATE todolist.user_task SET task='{}' WHERE user_task_id={};".format(task, id))
 
+    conn.close()  
+
+
+def addUser(username, password):
+
+
+    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST)
+    with conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+
+            cur.execute("INSERT INTO todolist.users (user_name,user_password) VALUES ('{}','{}')".format(username, password))
+
     conn.close()   

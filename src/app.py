@@ -1,7 +1,8 @@
 from flask import Flask, request, render_template, session, redirect, url_for, flash, g
 import db
-from models.UserModel import User
 import sys
+import hashlib
+from models.UserModel import User
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -10,7 +11,8 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 def before_request():
     if 'user_id' in session:
         credentials = db.sendQuery("SELECT * FROM todolist.users WHERE user_id = {};".format(session['user_id']))
-        g.user = User.from_dict(credentials[0])
+        if len(credentials) > 0:
+            g.user = User.from_dict(credentials[0])
 
 @app.route("/")
 def home():
@@ -20,23 +22,24 @@ def home():
         return render_template("home.html", name=None)
 
 
-@app.route("/tasks", methods=['GET', 'POST'])
-def tasks():
+
+@app.route("/signup", methods=['GET', 'POST'])
+def signup():
     if request.method == 'POST':
-        task = request.form['content']
-        if task != "":
-            db.addTask("INSERT INTO todolist.user_task (user_id, task) VALUES ({}, '{}');".format(session['user_id'], task))
+        username = request.form['username'].strip()
+        password = request.form['password'].strip()
+        if len(db.sendQuery("SELECT user_name FROM todolist.users WHERE user_name LIKE '{}';".format(username))) == 0:
+            db.addUser(username, hashlib.sha512(password.encode('utf-8')).hexdigest())
+            session.pop('user_id', None)
+            credentials = db.sendQuery("SELECT * FROM todolist.users WHERE user_name LIKE '{}';".format(username))
+            session['user_id'] = credentials[0]['user_id']
+            g.user = User.from_dict(credentials[0])
+            return redirect(url_for("tasks"))
+        else:
+            flash("Username not avaliable", "is-warning")
+            return redirect(url_for("signup"))
 
-            tasks = db.sendQuery("SELECT * FROM todolist.user_task;")
-            return render_template("tasks.html", name=g.user.name, tasks=tasks)
-    if 'user_id' in session:
-        tasks = db.sendQuery("SELECT * FROM todolist.user_task;")
-        return render_template("tasks.html", name=g.user.name, tasks=tasks)
-    else:
-        flash("Log in, please, to access your tasks", "is-danger")
-        return redirect(url_for("home"))
-
-
+    return render_template("signup.html")
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -47,7 +50,7 @@ def login():
         credentials = db.sendQuery("SELECT * FROM todolist.users WHERE user_name LIKE '{}';".format(username))
         if len(credentials) > 0:
             loginUser = User.from_dict(credentials[0])
-            if loginUser.validate(username, password):
+            if loginUser.validate(username, hashlib.sha512(password.encode('utf-8')).hexdigest()):
                 session['user_id'] = credentials[0]['user_id']
                 return redirect(url_for("tasks"))
             else:
@@ -59,12 +62,30 @@ def login():
             return redirect(url_for("login"))
     return render_template("login.html")
 
+
+@app.route("/tasks", methods=['GET', 'POST'])
+def tasks():
+    if request.method == 'POST':
+        task = request.form['content']
+        if task != "":
+            db.addTask("INSERT INTO todolist.user_task (user_id, task) VALUES ({}, '{}');".format(session['user_id'], task))
+
+            tasks = db.sendQuery("SELECT * FROM todolist.user_task WHERE user_id = {};".format(session['user_id']))
+            return render_template("tasks.html", name=g.user.name, tasks=tasks)
+    if 'user_id' in session:
+        tasks = db.sendQuery("SELECT * FROM todolist.user_task WHERE user_id = {};".format(session['user_id']))
+        return render_template("tasks.html", name=g.user.name, tasks=tasks)
+    else:
+        flash("Log in, please, to access your tasks", "is-danger")
+        return redirect(url_for("home"))
+
 @app.route("/logout")
 def logout():
     if 'user_id' in session:
         flash("You've successfully logged out", "is-success")
 
     session.pop('user_id', None)
+    del(g.user)
     return redirect(url_for("login"))
 
 @app.route("/delete/<int:id>")
