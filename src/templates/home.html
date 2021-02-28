@@ -1,17 +1,33 @@
-{% extends "layout.html" %}
+{% extends "main.html" %}
 {% block title %}
 Home
 {% endblock %}
 {% block content %}
-{% if name == "dmytro" %}
-<p>Let's create your todolist {{name}}.</p>
-<p>
-    <a href="tasks">Lets check your tasks</a>
-</p>
 
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    {% for msg in messages %}
+        <p>{{msg}}</p>
+    {% endfor %}
+{% endif%}
+{% endwith %}
 
-
+{% if name != None %}
+    <p>Let's check what you have to do {{name}}.</p>
+    <p>
+        <a href="/tasks">My tasks</a>
+    </p>
+    <p>
+        <a href="/logout">Log out</a>
+    </p>
 {% else %}
-<p>I don't know you {{name}}.</p>
+    <p>Hello, let's create your tasks.</p>
+    <p>
+        But firstly <a href="/login">Log in</a>
+    </p>
+    <br>
+    <p>
+        Don't have an account? <a href="/signup">Sign up</a>
+    </p>
 {% endif %}
 {% endblock %}
