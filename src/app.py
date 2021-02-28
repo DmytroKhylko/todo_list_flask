@@ -43,6 +43,9 @@ def login():
             if loginUser.validate(username, password):
                 session['user_id'] = credentials[0]['user_id']
                 return redirect(url_for("tasks"))
+            else:
+                flash("Incorrect credentials!", "warning")
+
 
         else:
             flash("Incorrect credentials!", "warning")
