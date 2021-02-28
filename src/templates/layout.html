@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>{% block title %}{% endblock %}</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css')}}" />
+    </head>
+
+    <body>
+        <div class="navbar">
+
+        </div>
+
+        <div class="body-content">
+            {% block content %}
+            {% endblock %}
+            <hr/>
+            <footer class="footer">
+                <p>© 2020</p>
+            </footer>
+        </div>
+    </body>
+</html>

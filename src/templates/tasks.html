@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block title %}
+Your tasks
+{% endblock %}
+{% block content %}
+<ul>
+{% for task_dict in tasks %}
+    <li>{{task_dict["task"]}}</li>
+{% endfor %}
+<p><a href="/logout" >Log out</a></p>
+</ul>
+{% endblock %}

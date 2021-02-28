@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}
+Home
+{% endblock %}
+{% block content %}
+{% if name == "dmytro" %}
+<p>Let's create your todolist {{name}}.</p>
+<p>
+    <a href="tasks">Lets check your tasks</a>
+</p>
+
+
+
+{% else %}
+<p>I don't know you {{name}}.</p>
+{% endif %}
+{% endblock %}
