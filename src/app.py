@@ -11,8 +11,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 def before_request():
     if 'user_id' in session:
         credentials = db.sendQuery("SELECT * FROM todolist.users WHERE user_id = {};".format(session['user_id']))
-        if len(credentials) > 0:
-            g.user = User.from_dict(credentials[0])
+        g.user = User.from_dict(credentials[0])
 
 @app.route("/")
 def home():
@@ -29,7 +28,7 @@ def signup():
         username = request.form['username'].strip()
         password = request.form['password'].strip()
         if len(db.sendQuery("SELECT user_name FROM todolist.users WHERE user_name LIKE '{}';".format(username))) == 0:
-            db.addUser(username, hashlib.sha512(password.encode('utf-8')).hexdigest())
+            db.addUser(username, password)
             session.pop('user_id', None)
             credentials = db.sendQuery("SELECT * FROM todolist.users WHERE user_name LIKE '{}';".format(username))
             session['user_id'] = credentials[0]['user_id']

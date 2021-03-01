@@ -1,5 +1,7 @@
 import psycopg2
 import psycopg2.extras
+import hashlib
+
 
 
 DB_HOST = "db"
@@ -63,6 +65,6 @@ def addUser(username, password):
     with conn:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
 
-            cur.execute("INSERT INTO todolist.users (user_name,user_password) VALUES ('{}','{}')".format(username, password))
+            cur.execute("INSERT INTO todolist.users (user_name,user_password) VALUES ('{}','{}')".format(username, hashlib.sha512(password.encode('utf-8')).hexdigest()))
 
     conn.close()   
