@@ -2,23 +2,35 @@ from flask import Flask, request, render_template, session, redirect, url_for, f
 import db
 import sys
 import hashlib
+import functools
+import bcrypt
 from models.UserModel import User
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
+
+def login_required(func):
+    @functools.wraps(func)
+    def wrapper_login_required(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Log in, please, to access your tasks", "is-danger")
+            return redirect(url_for("login"))
+        return func(*args, **kwargs)
+    return wrapper_login_required
+
 @app.before_request
 def before_request():
+    g.db = db.get_db()
     if 'user_id' in session:
-        credentials = db.sendQuery("SELECT * FROM todolist.users WHERE user_id = {};".format(session['user_id']))
-        g.user = User.from_dict(credentials[0])
+        g.user = User.getUserById(session['user_id'])
+
 
 @app.route("/")
 def home():
     if 'user_id' in session:
         return render_template("home.html",name=g.user.name)
-    else:
-        return render_template("home.html", name=None)
+    return render_template("home.html", name=None)
 
 
 
@@ -26,17 +38,19 @@ def home():
 def signup():
     if request.method == 'POST':
         username = request.form['username'].strip()
-        password = request.form['password'].strip()
-        if len(db.sendQuery("SELECT user_name FROM todolist.users WHERE user_name LIKE '{}';".format(username))) == 0:
+        password = request.form['password']
+
+        if not db.userExists(username):
             db.addUser(username, password)
             session.pop('user_id', None)
-            credentials = db.sendQuery("SELECT * FROM todolist.users WHERE user_name LIKE '{}';".format(username))
-            session['user_id'] = credentials[0]['user_id']
-            g.user = User.from_dict(credentials[0])
+            user = User.getUserByName(username)
+            session['user_id'] = user.id
+            g.user = user
+            app.logger.info(user.id)
             return redirect(url_for("tasks"))
-        else:
-            flash("Username not avaliable", "is-warning")
-            return redirect(url_for("signup"))
+
+        flash("Username not avaliable", "is-warning")
+        return redirect(url_for("signup"))
 
     return render_template("signup.html")
 
@@ -45,38 +59,48 @@ def login():
     if request.method == 'POST':
         session.pop('user_id', None)
         username = request.form['username'].strip()
-        password = request.form['password'].strip()
-        credentials = db.sendQuery("SELECT * FROM todolist.users WHERE user_name LIKE '{}';".format(username))
-        if len(credentials) > 0:
-            loginUser = User.from_dict(credentials[0])
-            if loginUser.validate(username, hashlib.sha512(password.encode('utf-8')).hexdigest()):
-                session['user_id'] = credentials[0]['user_id']
-                return redirect(url_for("tasks"))
-            else:
-                flash("Incorrect credentials!", "is-warning")
+        password = request.form['password']
+
+        loginUser = User.getUserByName(username)
+        if loginUser != None and loginUser.validate(username, password):
+            session['user_id'] = loginUser.id
+            g.user = loginUser
+            return redirect(url_for("tasks"))
 
 
-        else:
-            flash("Incorrect credentials!", "is-warning")
-            return redirect(url_for("login"))
+        flash("Incorrect credentials!", "is-warning")
+        return redirect(url_for("login"))
     return render_template("login.html")
 
-
 @app.route("/tasks", methods=['GET', 'POST'])
+@login_required
 def tasks():
     if request.method == 'POST':
         task = request.form['content']
-        if task != "":
-            db.addTask("INSERT INTO todolist.user_task (user_id, task) VALUES ({}, '{}');".format(session['user_id'], task))
-
-            tasks = db.sendQuery("SELECT * FROM todolist.user_task WHERE user_id = {};".format(session['user_id']))
-            return render_template("tasks.html", name=g.user.name, tasks=tasks)
-    if 'user_id' in session:
-        tasks = db.sendQuery("SELECT * FROM todolist.user_task WHERE user_id = {};".format(session['user_id']))
+        app.logger.info(g.user.addTask(task))
+        tasks = g.user.getTasks()
+        app.logger.info('%s', tasks)
         return render_template("tasks.html", name=g.user.name, tasks=tasks)
-    else:
-        flash("Log in, please, to access your tasks", "is-danger")
-        return redirect(url_for("home"))
+    tasks = g.user.getTasks()
+    return render_template("tasks.html", name=g.user.name, tasks=tasks)
+
+
+
+@app.route("/update/<int:id>", methods=['GET', 'POST'])
+@login_required
+def update(id):
+    task = g.user.getTask(id)
+    if request.method == 'POST':
+        updated_task = request.form['content']
+        g.user.updateTask(id, updated_task)
+        return redirect(url_for("tasks"))
+    return render_template('update.html',task=task[0])
+    
+@app.route("/delete/<int:id>")
+@login_required
+def delete(id):
+    g.user.deleteTask(id)
+    return redirect(url_for("tasks"))
 
 @app.route("/logout")
 def logout():
@@ -84,28 +108,9 @@ def logout():
         flash("You've successfully logged out", "is-success")
 
     session.pop('user_id', None)
-    del(g.user)
+    del g.user
     return redirect(url_for("login"))
 
-@app.route("/delete/<int:id>")
-def delete(id):
-    db.deleteTask(id)
-    return redirect(url_for("tasks"))
-
-
-@app.route("/update/<int:id>", methods=['GET', 'POST'])
-def update(id):
-    if 'user_id' in session:
-        task = db.sendQuery("SELECT * FROM todolist.user_task WHERE user_task_id = {};".format(id))
-        if request.method == 'POST':
-            updated_task = request.form['content']
-            db.updateTask(id,updated_task)
-            return redirect(url_for("tasks"))
-        else:
-            return render_template('update.html',task=task[0])
-    else:
-        flash("Log in, please, to access your tasks", "is-danger")
-        return redirect(url_for("home"))
 
 
 if __name__ == "__main__":
