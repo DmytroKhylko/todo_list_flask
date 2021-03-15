@@ -4,12 +4,11 @@ Signup
 {% endblock %}
 
 {% block content %}
-  <section class="hero is-info is-fullheight">
-    <div class="hero-body">
-      <div class="container">
-        <div class="columns is-centered">
-          <div class="column is-half">
-            
+  <section>
+    <div>
+      <div>
+        <div>
+          <div>
             {% with messages = get_flashed_messages(with_categories=true) %}
               {% if messages %}
                 {% for category, message in messages %}
@@ -21,27 +20,27 @@ Signup
             {% endwith %} 
             <p>Sign Up</p>
             <form method="POST">
-              <div class="field">
-                <label class="label">Username</label>
-                <div class="control has-icons-left has-icons-right">
+              <div>
+                <label>Username</label>
+                <div>
                   <input class="input" type="text" name="username" placeholder="Username">
-                  <span class="icon is-small is-left">
-                    <i class="fas fa-user"></i>
+                  <span>
+                    <i></i>
                   </span>
                 </div>
               </div>
-              <div class="field">
-                <label class="label">Password</label>
-                <p class="control has-icons-left">
+              <div>
+                <label>Password</label>
+                <p>
                   <input class="input" type="password" name="password" placeholder="Password">
-                  <span class="icon is-small is-left">
-                    <i class="fas fa-lock"></i>
+                  <span>
+                    <i></i>
                   </span>
                 </p>
               </div>
-              <div class="field">
-                <p class="control">
-                    <button type="submit" class="button is-success">
+              <div>
+                <p>
+                    <button type="submit">
                         Sign Up
                     </button>
                     <a href='/'>

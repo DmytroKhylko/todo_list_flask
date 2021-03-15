@@ -7,20 +7,20 @@ Your tasks
 <a href='/'>
     Home
 </a>
-<aside class="menu">
-    <p class="menu-label">
+<section>
+    <p>
         Your tasks {{name}}
     </p>
     <div class="tasks_text">
-        <ul class="menu-list" id="tasks">
+        <ul>
             {% if tasks|length < 1 %}
-                <li><a>There are no tasks yet. Create one below</a><td>
+                <li><p>There are no tasks yet. Create one below</p></li>
             {% else %}
                 {% for task in tasks %}
-                    <li><a>{{task["task"]}}</a><td>
+                    <li><p>{{task["task"]}}</p>
                         <a  href="/update/{{task['user_task_id']}}">Update</a>
                         <a href="/delete/{{task['user_task_id']}}">Delete</a>
-                    </td></li>
+                    </li>
                 {% endfor %}
             {% endif %}
         </ul>
@@ -30,5 +30,5 @@ Your tasks
         <input type="submit" value="Add task">
     </form>
     <p><a  href="/logout" >Log out</a></p>
-</aside>
+</section>
 {% endblock %}
