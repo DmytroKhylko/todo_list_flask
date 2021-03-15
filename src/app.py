@@ -46,7 +46,6 @@ def signup():
             user = User.getUserByName(username)
             session['user_id'] = user.id
             g.user = user
-            app.logger.info(user.id)
             return redirect(url_for("tasks"))
 
         flash("Username not avaliable", "is-warning")
@@ -77,9 +76,8 @@ def login():
 def tasks():
     if request.method == 'POST':
         task = request.form['content']
-        app.logger.info(g.user.addTask(task))
+        g.user.addTask(task)
         tasks = g.user.getTasks()
-        app.logger.info('%s', tasks)
         return render_template("tasks.html", name=g.user.name, tasks=tasks)
     tasks = g.user.getTasks()
     return render_template("tasks.html", name=g.user.name, tasks=tasks)
