@@ -106,7 +106,7 @@ def logout():
         flash("You've successfully logged out", "is-success")
 
     session.pop('user_id', None)
-    del g.user
+    g.user = None
     return redirect(url_for("login"))
 
 
