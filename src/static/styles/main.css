@@ -1,7 +1,7 @@
 .body_class{
     background-color: black;
 }
-#tasks{
+.tasks_text{
     text-align: center;
-    background-color: black;
+    background-color: #3298dc;
 }

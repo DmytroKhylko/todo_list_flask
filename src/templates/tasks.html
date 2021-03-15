@@ -10,22 +10,21 @@ Your tasks
 <aside class="menu">
     <p class="menu-label">
         Your tasks {{name}}
-      </p>
-    <ul class="menu-list" id="tasks">
-        {% if tasks|length < 1 %}
-            <li><a>There are no tasks yet. Create one below</a><td>
-        {% else %}
-            <div>
-            {% for task in tasks %}
-                <li><a>{{task["task"]}}</a><td>
-                    <a href="/update/{{task['user_task_id']}}">Update</a>
-                    <a href="/delete/{{task['user_task_id']}}">Delete</a>
-                </td></li>
-            {% endfor %}
-            </div>
-        {% endif %}
-    </ul>
-
+    </p>
+    <div class="tasks_text">
+        <ul class="menu-list" id="tasks">
+            {% if tasks|length < 1 %}
+                <li><a>There are no tasks yet. Create one below</a><td>
+            {% else %}
+                {% for task in tasks %}
+                    <li><a>{{task["task"]}}</a><td>
+                        <a  href="/update/{{task['user_task_id']}}">Update</a>
+                        <a href="/delete/{{task['user_task_id']}}">Delete</a>
+                    </td></li>
+                {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
     <form action="/tasks" method="POST">
         <input type="text" name="content" id="content">
         <input type="submit" value="Add task">
